@@ -3,9 +3,8 @@ py-mve
 
 Python Binding for Multi-View Environment
 
-[MVE Github](https://github.com/simonfuhrmann/mve)
-
-[MVE Offical Website](http://www.gris.tu-darmstadt.de/projects/multiview-environment/)
+[MVE Official Website](http://www.gris.tu-darmstadt.de/projects/multiview-environment/)
+[MVE Github Repository](https://github.com/simonfuhrmann/mve)
 
 ## Status
 
