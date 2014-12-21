@@ -1,0 +1,15 @@
+# Ignore System Generated Files
+.DS_Store
+*.swp
+*~
+
+# Ignore Generated Files
+*.so
+*.pyc
+/build
+/mve/*.cpp
+/mve/*.c
+__pycache__
+
+# Ignore Temp Files
+/tmp
