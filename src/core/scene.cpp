@@ -1,5 +1,6 @@
 #include "scene.h"
 #include <mve/scene.h>
+#include <util/exception.h>
 #include <Python.h>
 #include <structmember.h>
 #include "view.h"
@@ -35,7 +36,12 @@ static PyObject* Scene_Load(SceneObj *self, PyObject *arg)
   if (!path)
     return NULL;
 
-  self->thisptr->load_scene(path);
+  try {
+    self->thisptr->load_scene(path);
+  } catch (const util::Exception& e) {
+    PyErr_SetString(PyExc_Exception, e.what());
+    return NULL;
+  }
 
   Py_RETURN_NONE;
 }
@@ -85,7 +91,12 @@ static int Scene_Init(SceneObj *self, PyObject *args, PyObject *kwds)
     return -1;
 
   if (path) {
-    self->thisptr = mve::Scene::create(path);
+    try {
+      self->thisptr = mve::Scene::create(path);
+    } catch (const util::Exception& e) {
+      PyErr_SetString(PyExc_Exception, e.what());
+      return -1;
+    }
   } else {
     self->thisptr = mve::Scene::create();
   }

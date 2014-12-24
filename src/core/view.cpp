@@ -2,6 +2,7 @@
 #include "camera.h"
 #include "image_base.h"
 #include <mve/view.h>
+#include <util/exception.h>
 #include <new>
 #include <Python.h>
 #include <structmember.h>
@@ -182,10 +183,16 @@ static int View_Init(ViewObj *self, PyObject *args, PyObject *kwds)
   if (!PyArg_ParseTupleAndKeywords(args, kwds, "|s:init", klist, &filename))
     return -1;
 
-  if (filename)
-    self->thisptr = mve::View::create(filename);
-  else
-    self->thisptr = mve::View::create();
+  self->thisptr = mve::View::create();
+
+  if (filename) {
+    try {
+      self->thisptr->load_mve_file(filename);
+    } catch (const util::Exception& e) {
+      PyErr_SetString(PyExc_Exception, e.what());
+      return -1;
+    }
+  }
 
   return 0;
 }
