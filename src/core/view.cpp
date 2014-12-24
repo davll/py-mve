@@ -105,12 +105,76 @@ static PyObject* View_RemoveImage(ViewObj *self, PyObject *arg)
   Py_RETURN_NONE;
 }
 
+static PyObject* View_Load(ViewObj *self, PyObject *args, PyObject *kwds)
+{
+  char* klist[] = { "filename", "merge", NULL };
+  const char* filename = NULL;
+  PyObject *merge = Py_False;
+
+  if (!PyArg_ParseTupleAndKeywords(args, kwds, "s|O!:load", klist, &filename, &PyBool_Type, &merge))
+    return NULL;
+
+  try {
+    bool bmerge = PyLong_AsLong(merge);
+    self->thisptr->load_mve_file(filename, bmerge); // other args: merge
+  } catch (const util::Exception& e) {
+    PyErr_SetString(PyExc_Exception, e.what());
+    return NULL;
+  }
+
+  Py_RETURN_NONE;
+}
+
+static PyObject* View_Save(ViewObj *self, PyObject *args, PyObject *kwds)
+{
+  char* klist[] = { "filename", NULL };
+  const char* filename = NULL;
+
+  if (!PyArg_ParseTupleAndKeywords(args, kwds, "|s:save", klist, &filename))
+    return NULL;
+
+  try {
+    if (filename) {
+      self->thisptr->save_mve_file_as(filename);
+    } else {
+      self->thisptr->save_mve_file(); // other args: rebuild
+    }
+  } catch (const util::Exception& e) {
+    PyErr_SetString(PyExc_Exception, e.what());
+    return NULL;
+  }
+
+  Py_RETURN_NONE;
+}
+
+static PyObject* View_Reload(ViewObj *self, PyObject *args, PyObject *kwds)
+{
+  char* klist[] = { "merge", NULL };
+  PyObject *merge = Py_False;
+
+  if (!PyArg_ParseTupleAndKeywords(args, kwds, "|O!:reload", klist, &PyBool_Type, &merge))
+    return NULL;
+
+  try {
+    bool bmerge = PyLong_AsLong(merge);
+    self->thisptr->reload_mve_file(bmerge);
+  } catch (const util::Exception& e) {
+    PyErr_SetString(PyExc_Exception, e.what());
+    return NULL;
+  }
+
+  Py_RETURN_NONE;
+}
+
 static PyMethodDef View_methods[] = {
   {"cleanup_cache", (PyCFunction)View_CleanupCache, METH_NOARGS, "Clean Cache"},
   {"has_image", (PyCFunction)View_HasImage, METH_O, "Check if image embedding exists"},
   {"get_image", (PyCFunction)View_GetImage, METH_O, "Get an image embedding"},
   {"set_image", (PyCFunction)View_SetImage, METH_VARARGS, "Set an image embedding"},
   {"remove_image", (PyCFunction)View_RemoveImage, METH_O, "Remove an image embedding"},
+  {"load", (PyCFunction)View_Load, METH_VARARGS|METH_KEYWORDS, "Load"},
+  {"save", (PyCFunction)View_Save, METH_VARARGS|METH_KEYWORDS, "Save"},
+  {"reload", (PyCFunction)View_Reload, METH_VARARGS|METH_KEYWORDS, "Reload"},
   {NULL, NULL, 0, NULL}
 };
 
