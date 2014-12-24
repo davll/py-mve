@@ -1,7 +1,7 @@
 # python setup.py build_ext --inplace
 import testing
 import cv2
-from mve.core import Scene, View, ImageBase
+from mve.core import Scene, View, Image
 import mve.core
 #s = Scene('tmp/b-daman/scene')
 s = Scene()
@@ -11,7 +11,7 @@ print(s)
 
 views = s.views
 
-img = ImageBase(640, 480, 3, mve.core.IMAGE_TYPE_UINT8)
+img = Image(640, 480, 3, mve.core.IMAGE_TYPE_UINT8)
 print(img)
 
 views[2].set_image("undist-L1", img)

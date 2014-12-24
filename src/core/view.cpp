@@ -1,6 +1,6 @@
 #include "view.h"
 #include "camera.h"
-#include "image_base.h"
+#include "image.h"
 #include <mve/view.h>
 #include <util/exception.h>
 #include <new>
@@ -65,7 +65,7 @@ static PyObject* View_GetImage(ViewObj *self, PyObject *arg)
   mve::ImageBase::Ptr ptr = self->thisptr->get_image(name);
 
   if (ptr.get() != NULL)
-    return ImageBase_Create(ptr);
+    return Image_Create(ptr);
 
   Py_RETURN_NONE;
 }
@@ -75,13 +75,12 @@ static PyObject* View_SetImage(ViewObj *self, PyObject *args)
   const char *name;
   PyObject *image;
 
-  if (!PyArg_ParseTuple(args, "sO:set_image", &name, &image))
+  if (!PyArg_ParseTuple(args, "sO!:set_image", &name, Image_Type(), &image))
     return NULL;
 
-  mve::ImageBase::Ptr ptr = ImageBase_GetImagePtr(image);
+  mve::ImageBase::Ptr ptr = Image_GetImageBasePtr(image);
   if (ptr == NULL) {
-    PyErr_SetString(PyExc_TypeError, "image should be mve.core.ImageBase");
-    return NULL;
+    abort(); // It've checked before!
   }
 
   self->thisptr->set_image(name, ptr);

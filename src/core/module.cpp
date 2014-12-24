@@ -4,7 +4,7 @@
 #include "scene.h"
 #include "view.h"
 #include "camera.h"
-#include "image_base.h"
+#include "image.h"
 
 #define IMPORT_ARRAY
 #include "numpy_array.h"
@@ -51,7 +51,7 @@ PyMODINIT_FUNC initcore()
   load_Scene(mod);
   load_View(mod);
   load_Camera(mod);
-  load_ImageBase(mod);
+  load_Image(mod);
 
 #if PY_MAJOR_VERSION >= 3
   return mod;

@@ -1,4 +1,4 @@
-#include "image_base.h"
+#include "image.h"
 #include <mve/image_base.h>
 #include <mve/image.h>
 #include <Python.h>
@@ -29,52 +29,52 @@ static int _ImageTypeToNumpyDataType(mve::ImageType ty)
 }
 
 /***************************************************************************
- * ImageBase Object
+ * Image Object
  *
  */
 
-struct ImageBaseObj {
+struct ImageObj {
   PyObject_HEAD
   mve::ImageBase::Ptr thisptr;
 };
 
-static PyObject* ImageBase_Clone(ImageBaseObj *self)
+static PyObject* Image_Clone(ImageObj *self)
 {
   mve::ImageBase::Ptr ptr = self->thisptr->duplicate();
-  return ImageBase_Create(ptr);
+  return Image_Create(ptr);
 }
 
-static PyMethodDef ImageBase_methods[] = {
-  {"clone", (PyCFunction)ImageBase_Clone, METH_NOARGS, "Clone"},
+static PyMethodDef Image_methods[] = {
+  {"clone", (PyCFunction)Image_Clone, METH_NOARGS, "Clone"},
   {NULL, NULL, 0, NULL}
 };
 
-static PyObject* ImageBase_GetWidth(ImageBaseObj *self, void* closure)
+static PyObject* Image_GetWidth(ImageObj *self, void* closure)
 {
   return PyLong_FromLong(self->thisptr->width());
 }
 
-static PyObject* ImageBase_GetHeight(ImageBaseObj *self, void* closure)
+static PyObject* Image_GetHeight(ImageObj *self, void* closure)
 {
   return PyLong_FromLong(self->thisptr->height());
 }
 
-static PyObject* ImageBase_GetChannels(ImageBaseObj *self, void* closure)
+static PyObject* Image_GetChannels(ImageObj *self, void* closure)
 {
   return PyLong_FromLong(self->thisptr->channels());
 }
 
-static PyObject* ImageBase_GetByteSize(ImageBaseObj *self, void* closure)
+static PyObject* Image_GetByteSize(ImageObj *self, void* closure)
 {
   return PyLong_FromLong(self->thisptr->get_byte_size());
 }
 
-static PyObject* ImageBase_GetImageType(ImageBaseObj *self, void* closure)
+static PyObject* Image_GetImageType(ImageObj *self, void* closure)
 {
   return PyLong_FromLong(self->thisptr->get_type());
 }
 
-static PyObject* ImageBase_GetData(ImageBaseObj *self, void* closure)
+static PyObject* Image_GetData(ImageObj *self, void* closure)
 {
   mve::ImageBase::Ptr ptr = self->thisptr;
 
@@ -93,17 +93,17 @@ static PyObject* ImageBase_GetData(ImageBaseObj *self, void* closure)
   return arr;
 }
 
-static PyGetSetDef ImageBase_getset[] = {
-  {"width", (getter)ImageBase_GetWidth, 0, "Width", NULL },
-  {"height", (getter)ImageBase_GetHeight, 0, "Height", NULL},
-  {"channels", (getter)ImageBase_GetChannels, 0, "Channels", NULL},
-  {"byte_size", (getter)ImageBase_GetByteSize, 0, "Size in Bytes", NULL},
-  {"image_type", (getter)ImageBase_GetImageType, 0, "Image Type", NULL},
-  {"data", (getter)ImageBase_GetData, 0, "Data", NULL},
+static PyGetSetDef Image_getset[] = {
+  {"width", (getter)Image_GetWidth, 0, "Width", NULL },
+  {"height", (getter)Image_GetHeight, 0, "Height", NULL},
+  {"channels", (getter)Image_GetChannels, 0, "Channels", NULL},
+  {"byte_size", (getter)Image_GetByteSize, 0, "Size in Bytes", NULL},
+  {"image_type", (getter)Image_GetImageType, 0, "Image Type", NULL},
+  {"data", (getter)Image_GetData, 0, "Data", NULL},
   {NULL, NULL, NULL, NULL, NULL}
 };
 
-static int ImageBase_Init(ImageBaseObj *self, PyObject *args, PyObject *kwds)
+static int Image_Init(ImageObj *self, PyObject *args, PyObject *kwds)
 {
   char* klist[] = { "width", "height", "channels", "type", NULL };
   int width, height, channels, type;
@@ -153,9 +153,9 @@ static int ImageBase_Init(ImageBaseObj *self, PyObject *args, PyObject *kwds)
   return 0;
 }
 
-static PyObject* ImageBase_New(PyTypeObject *subtype, PyObject *args, PyObject *kwds)
+static PyObject* Image_New(PyTypeObject *subtype, PyObject *args, PyObject *kwds)
 {
-  ImageBaseObj* self = (ImageBaseObj*) subtype->tp_alloc(subtype, 0);
+  ImageObj* self = (ImageObj*) subtype->tp_alloc(subtype, 0);
 
   if (self != NULL) {
     ::new(&(self->thisptr)) mve::ImageBase::Ptr();
@@ -164,28 +164,28 @@ static PyObject* ImageBase_New(PyTypeObject *subtype, PyObject *args, PyObject *
   return (PyObject*) self;
 }
 
-static void ImageBase_Dealloc(ImageBaseObj *self)
+static void Image_Dealloc(ImageObj *self)
 {
   //printf("image is deallocated\n");
   self->thisptr.reset();
   Py_TYPE(self)->tp_free((PyObject*) self);
 }
 
-static PyObject* ImageBase_Representation(ImageBaseObj *self)
+static PyObject* Image_Representation(ImageObj *self)
 {
-  return PyString_FromFormat("ImageBase(%d x %d x %s[%d])",
+  return PyString_FromFormat("Image(%d x %d x %s[%d])",
                              self->thisptr->width(),
                              self->thisptr->height(),
                              self->thisptr->get_type_string(),
                              self->thisptr->channels());
 }
 
-static PyTypeObject ImageBaseType = {
+static PyTypeObject ImageType = {
   PyVarObject_HEAD_INIT(NULL, 0)
-  "mve.core.ImageBase", // tp_name
-  sizeof(ImageBaseObj), // tp_basicsize
+  "mve.core.Image", // tp_name
+  sizeof(ImageObj), // tp_basicsize
   0, // tp_itemsize
-  (destructor)ImageBase_Dealloc, // tp_dealloc
+  (destructor)Image_Dealloc, // tp_dealloc
   0, // tp_print
   0, // tp_getattr (deprecated)
   0, // tp_setattr (deprecated)
@@ -194,7 +194,7 @@ static PyTypeObject ImageBaseType = {
 #else
   0, // reserved
 #endif
-  (reprfunc)ImageBase_Representation, // tp_repr
+  (reprfunc)Image_Representation, // tp_repr
   0, // tp_as_number
   0, // tp_as_sequence
   0, // tp_as_mapping
@@ -205,24 +205,24 @@ static PyTypeObject ImageBaseType = {
   0, // tp_setattro
   0, // tp_as_buffer
   Py_TPFLAGS_DEFAULT, // tp_flags
-  "MVE ImageBase", // tp_doc
+  "MVE Image", // tp_doc
   0, // tp_traverse
   0, // tp_clear
   0, // tp_richcompare
   0, // tp_weaklistoffset
   0, // tp_iter
   0, // tp_iternext
-  ImageBase_methods, // tp_methods
+  Image_methods, // tp_methods
   0, // tp_members
-  ImageBase_getset, // tp_getset
+  Image_getset, // tp_getset
   0, // tp_base
   0, // tp_dict
   0, // tp_descr_get
   0, // tp_descr_set
   0, // tp_dictoffset
-  (initproc)ImageBase_Init, // tp_init
+  (initproc)Image_Init, // tp_init
   0, // tp_alloc
-  (newfunc)ImageBase_New, // tp_new
+  (newfunc)Image_New, // tp_new
   0, // tp_free
   0, // tp_is_gc
  };
@@ -232,7 +232,7 @@ static PyTypeObject ImageBaseType = {
  *
  */
 
-PyObject* ImageBase_Create(mve::ImageBase::Ptr ptr)
+PyObject* Image_Create(mve::ImageBase::Ptr ptr)
 {
   if (ptr.get() == NULL) {
     abort();
@@ -240,37 +240,42 @@ PyObject* ImageBase_Create(mve::ImageBase::Ptr ptr)
 
   PyObject* args = PyTuple_New(0);
   PyObject* kwds = PyDict_New();
-  PyObject* obj = ImageBaseType.tp_new(&ImageBaseType, args, kwds);
+  PyObject* obj = ImageType.tp_new(&ImageType, args, kwds);
   Py_DECREF(args);
   Py_DECREF(kwds);
 
   if (obj) {
-    ((ImageBaseObj*) obj)->thisptr = ptr;
+    ((ImageObj*) obj)->thisptr = ptr;
   }
 
   return obj;
 }
 
-bool ImageBase_Check(PyObject* obj)
+bool Image_Check(PyObject* obj)
 {
-  return PyObject_IsInstance(obj, (PyObject*) &ImageBaseType);
+  return PyObject_IsInstance(obj, (PyObject*) &ImageType);
 }
 
-mve::ImageBase::Ptr ImageBase_GetImagePtr(PyObject* obj)
+PyTypeObject* Image_Type()
 {
-  if (ImageBase_Check(obj)) {
-    return ((ImageBaseObj*) obj)->thisptr;
+  return &ImageType;
+}
+
+mve::ImageBase::Ptr Image_GetImageBasePtr(PyObject* obj)
+{
+  if (Image_Check(obj)) {
+    return ((ImageObj*) obj)->thisptr;
   }
   return mve::ImageBase::Ptr();
 }
 
-void load_ImageBase(PyObject *mod)
+void load_Image(PyObject *mod)
 {
-  if (PyType_Ready(&ImageBaseType) < 0)
+  if (PyType_Ready(&ImageType) < 0)
     abort();
-  Py_INCREF(&ImageBaseType);
+  Py_INCREF(&ImageType);
 
-  PyModule_AddObject(mod, "ImageBase", (PyObject*)&ImageBaseType);
+  PyModule_AddObject(mod, "Image", (PyObject*)&ImageType);
 
   PyModule_AddIntConstant(mod, "IMAGE_TYPE_UNKNOWN", mve::IMAGE_TYPE_UNKNOWN);
   PyModule_AddIntConstant(mod, "IMAGE_TYPE_UINT8", mve::IMAGE_TYPE_UINT8);
