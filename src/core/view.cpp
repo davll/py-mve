@@ -79,8 +79,10 @@ static PyObject* View_SetImage(ViewObj *self, PyObject *args)
     return NULL;
 
   mve::ImageBase::Ptr ptr = ImageBase_GetImagePtr(image);
-  if (ptr == NULL)
+  if (ptr == NULL) {
+    PyErr_SetString(PyExc_TypeError, "image should be mve.core.ImageBase");
     return NULL;
+  }
 
   self->thisptr->set_image(name, ptr);
 
