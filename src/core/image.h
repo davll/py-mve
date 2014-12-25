@@ -11,4 +11,6 @@ PyTypeObject* Image_Type();
 
 mve::ImageBase::Ptr Image_GetImageBasePtr(PyObject* obj);
 
+PyObject* Image_FromNumpyArray(PyObject* obj);
+
 void load_Image(PyObject *mod);

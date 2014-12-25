@@ -13,4 +13,4 @@ def distutils_build_path():
     return join(root, 'build', distutils_dir_name())
 
 sys.path.insert(0, distutils_build_path())
-print(sys.path)
+#print(sys.path)

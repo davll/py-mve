@@ -1,4 +1,5 @@
 #include "image.h"
+#include "image_numpy.h"
 #include <mve/image_base.h>
 #include <mve/image.h>
 #include <Python.h>
@@ -9,24 +10,6 @@
 #endif
 
 #pragma GCC diagnostic ignored "-Wc++11-compat-deprecated-writable-strings"
-
-static int _ImageTypeToNumpyDataType(mve::ImageType ty)
-{
-  switch (ty) {
-    case mve::IMAGE_TYPE_UINT8: return NPY_UINT8;
-    case mve::IMAGE_TYPE_UINT16: return NPY_UINT16;
-    case mve::IMAGE_TYPE_UINT32: return NPY_UINT32;
-    case mve::IMAGE_TYPE_UINT64: return NPY_UINT64;
-    case mve::IMAGE_TYPE_SINT8: return NPY_INT8;
-    case mve::IMAGE_TYPE_SINT16: return NPY_INT16;
-    case mve::IMAGE_TYPE_SINT32: return NPY_INT32;
-    case mve::IMAGE_TYPE_SINT64: return NPY_INT64;
-    case mve::IMAGE_TYPE_FLOAT: return NPY_FLOAT32;
-    case mve::IMAGE_TYPE_DOUBLE: return NPY_FLOAT64;
-    case mve::IMAGE_TYPE_UNKNOWN: return NPY_NOTYPE;
-  };
-  return NPY_NOTYPE;
-}
 
 /***************************************************************************
  * Image Object
@@ -267,6 +250,19 @@ mve::ImageBase::Ptr Image_GetImageBasePtr(PyObject* obj)
     return ((ImageObj*) obj)->thisptr;
   }
   return mve::ImageBase::Ptr();
+}
+
+PyObject* Image_FromNumpyArray(PyObject* obj)
+{
+  PyArrayImage* ptr = new PyArrayImage();
+  mve::ImageBase::Ptr ret_ptr(ptr);
+
+  if (ptr->copy_from(obj) < 0) {
+    //PyErr_SetString(PyExc_RuntimeError, "Fail to create image base object");
+    return NULL;
+  }
+
+  return Image_Create(ret_ptr);
 }
 
 void load_Image(PyObject *mod)

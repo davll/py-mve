@@ -6,6 +6,7 @@
 #include <new>
 #include <Python.h>
 #include <structmember.h>
+#include "numpy_array.h"
 
 #if PY_MAJOR_VERSION >= 3
 #  define PyString_FromString PyUnicode_FromString
@@ -75,12 +76,23 @@ static PyObject* View_SetImage(ViewObj *self, PyObject *args)
   const char *name;
   PyObject *image;
 
-  if (!PyArg_ParseTuple(args, "sO!:set_image", &name, Image_Type(), &image))
+  if (!PyArg_ParseTuple(args, "sO:set_image", &name, &image))
     return NULL;
+
+  if (PyArray_Check(image)) {
+    image = Image_FromNumpyArray(image);
+    PyObject *args2 = Py_BuildValue("sO", name, image);
+    PyObject *result = View_SetImage(self, args2);
+    Py_DECREF(args2);
+    Py_DECREF(image);
+    return result;
+  }
 
   mve::ImageBase::Ptr ptr = Image_GetImageBasePtr(image);
   if (ptr == NULL) {
-    abort(); // It've checked before!
+    return PyErr_Format(PyExc_TypeError,
+                        "2nd argument should be %s or numpy.ndarray",
+                        Image_Type()->tp_name);
   }
 
   self->thisptr->set_image(name, ptr);
