@@ -65,8 +65,12 @@ static PyObject* View_GetImage(ViewObj *self, PyObject *arg)
 
   mve::ImageBase::Ptr ptr = self->thisptr->get_image(name);
 
-  if (ptr.get() != NULL)
-    return Image_Create(ptr);
+  if (ptr.get() != NULL) {
+    PyObject* image = Image_Create(ptr);
+    PyObject* data = PyObject_GetAttrString(image, "data");
+    Py_DECREF(image);
+    return data;
+  }
 
   Py_RETURN_NONE;
 }

@@ -38,9 +38,9 @@ for view in views:
     #print(cam.distortion)
     #print(cam.get_calibration(width=1, height=1))
     img = view.get_image('undist-L1')
-    print(img)
+    #print(img)
     if img is not None:
-        cv2.imshow("show", cv2.cvtColor(img.data, cv2.COLOR_RGB2BGR))
+        cv2.imshow("show", cv2.cvtColor(img, cv2.COLOR_RGB2BGR))
         cv2.waitKey(0)
     else:
         print("{} has no image".format(view))
