@@ -10,6 +10,8 @@
 /mve/*.cpp
 /mve/*.c
 __pycache__
+/dist
+/*.egg-info
 
 # Ignore Temp Files
 /tmp
