@@ -54,5 +54,6 @@ setup(
     author_email = 'davll.xc@gmail.com',
     packages = ['mve'],
     ext_modules = extensions(),
-    install_requires = ['numpy']
+    install_requires = ['numpy'],
+    setup_requires = ['numpy']
 )
