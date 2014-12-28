@@ -1,5 +1,4 @@
-from distutils.core import setup
-from distutils.extension import Extension
+from setuptools import setup, Extension
 import platform, sys, os.path
 from os.path import join, isdir
 from glob import glob, iglob
@@ -9,7 +8,6 @@ try:
     import numpy
 except:
     print('Numpy is required')
-    print('pip install numpy')
     sys.exit(1)
 
 if 'MVE_ROOT' in ENV:
