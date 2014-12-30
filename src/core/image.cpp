@@ -1,5 +1,4 @@
 #include "image.h"
-#include "image_numpy.h"
 #include <mve/image_base.h>
 #include <mve/image.h>
 #include <Python.h>
@@ -10,6 +9,77 @@
 #endif
 
 #pragma GCC diagnostic ignored "-Wc++11-compat-deprecated-writable-strings"
+
+static inline int _ImageTypeToNumpyDataType(mve::ImageType ty)
+{
+  switch (ty) {
+    case mve::IMAGE_TYPE_UINT8: return NPY_UINT8;
+    case mve::IMAGE_TYPE_UINT16: return NPY_UINT16;
+    case mve::IMAGE_TYPE_UINT32: return NPY_UINT32;
+    case mve::IMAGE_TYPE_UINT64: return NPY_UINT64;
+    case mve::IMAGE_TYPE_SINT8: return NPY_INT8;
+    case mve::IMAGE_TYPE_SINT16: return NPY_INT16;
+    case mve::IMAGE_TYPE_SINT32: return NPY_INT32;
+    case mve::IMAGE_TYPE_SINT64: return NPY_INT64;
+    case mve::IMAGE_TYPE_FLOAT: return NPY_FLOAT32;
+    case mve::IMAGE_TYPE_DOUBLE: return NPY_FLOAT64;
+    case mve::IMAGE_TYPE_UNKNOWN: return NPY_NOTYPE;
+  };
+  return NPY_NOTYPE;
+}
+
+static inline mve::ImageType _NumpyDataTypeToImageType(int dtype)
+{
+  switch (dtype) {
+    case NPY_UINT8: return mve::IMAGE_TYPE_UINT8;
+    case NPY_UINT16: return mve::IMAGE_TYPE_UINT16;
+    case NPY_UINT32: return mve::IMAGE_TYPE_UINT32;
+    case NPY_UINT64: return mve::IMAGE_TYPE_UINT64;
+    case NPY_INT8: return mve::IMAGE_TYPE_SINT8;
+    case NPY_INT16: return mve::IMAGE_TYPE_SINT16;
+    case NPY_INT32: return mve::IMAGE_TYPE_SINT32;
+    case NPY_INT64: return mve::IMAGE_TYPE_SINT64;
+    case NPY_FLOAT32: return mve::IMAGE_TYPE_FLOAT;
+    case NPY_FLOAT64: return mve::IMAGE_TYPE_DOUBLE;
+  };
+  return mve::IMAGE_TYPE_UNKNOWN;
+}
+
+static inline size_t _ImageTypeElementSize(mve::ImageType ty)
+{
+  switch (ty) {
+    case mve::IMAGE_TYPE_UINT8: return sizeof(uint8_t);
+    case mve::IMAGE_TYPE_UINT16: return sizeof(uint16_t);
+    case mve::IMAGE_TYPE_UINT32: return sizeof(uint32_t);
+    case mve::IMAGE_TYPE_UINT64: return sizeof(uint64_t);
+    case mve::IMAGE_TYPE_SINT8: return sizeof(int8_t);
+    case mve::IMAGE_TYPE_SINT16: return sizeof(int16_t);
+    case mve::IMAGE_TYPE_SINT32: return sizeof(int32_t);
+    case mve::IMAGE_TYPE_SINT64: return sizeof(int64_t);
+    case mve::IMAGE_TYPE_FLOAT: return sizeof(float);
+    case mve::IMAGE_TYPE_DOUBLE: return sizeof(double);
+    case mve::IMAGE_TYPE_UNKNOWN: return 0;
+  };
+  return (size_t)-1;
+}
+
+static inline char const * _ImageTypeToString(mve::ImageType ty)
+{
+  switch (ty) {
+    case mve::IMAGE_TYPE_UINT8: return "uint8";
+    case mve::IMAGE_TYPE_UINT16: return "uint16";
+    case mve::IMAGE_TYPE_UINT32: return "uint32";
+    case mve::IMAGE_TYPE_UINT64: return "uint64";
+    case mve::IMAGE_TYPE_SINT8: return "sint8";
+    case mve::IMAGE_TYPE_SINT16: return "sint16";
+    case mve::IMAGE_TYPE_SINT32: return "sint32";
+    case mve::IMAGE_TYPE_SINT64: return "sint64";
+    case mve::IMAGE_TYPE_FLOAT: return "float";
+    case mve::IMAGE_TYPE_DOUBLE: return "double";
+    case mve::IMAGE_TYPE_UNKNOWN: return "unknown";
+  };
+  return "unknown";
+}
 
 /***************************************************************************
  * Image Object
@@ -254,15 +324,43 @@ mve::ImageBase::Ptr Image_GetImageBasePtr(PyObject* obj)
 
 PyObject* Image_FromNumpyArray(PyObject* obj)
 {
-  PyArrayImage* ptr = new PyArrayImage();
-  mve::ImageBase::Ptr ret_ptr(ptr);
-
-  if (ptr->copy_from(obj) < 0) {
-    //PyErr_SetString(PyExc_RuntimeError, "Fail to create image base object");
+  if (!PyArray_Check(obj)) {
+    PyErr_SetString(PyExc_TypeError, "Argument should be a Numpy Array");
     return NULL;
   }
 
-  return Image_Create(ret_ptr);
+  PyArrayObject *arr = (PyArrayObject*)obj;
+
+  int ndim = PyArray_NDIM(arr);
+  if (ndim != 2 && ndim != 3) {
+    PyErr_SetString(PyExc_TypeError, "Argument should be a 2/3 dimensional array");
+    return NULL;
+  }
+
+  mve::ImageType ty = _NumpyDataTypeToImageType(PyArray_TYPE(arr));
+  int width = PyArray_DIM(arr, 1), height = PyArray_DIM(arr, 0);
+  int channels = (ndim == 2 ? 1 : PyArray_DIM(arr, 2));
+
+  PyObject* args = Py_BuildValue("iiii", width, height, channels, (int)ty);
+  PyObject* self = PyObject_Call((PyObject*)&ImageType, args, NULL);
+  Py_DECREF(args);
+
+  if (!self)
+    return NULL;
+
+  PyObject* data = PyObject_GetAttrString(self, "data");
+  if (data) {
+    if (PyArray_CopyInto((PyArrayObject*)data, arr) < 0) {
+      Py_DECREF(self);
+      self = NULL;
+    }
+    Py_DECREF(data);
+  } else {
+    Py_DECREF(self);
+    self = NULL;
+  }
+
+  return self;
 }
 
 void load_Image(PyObject *mod)

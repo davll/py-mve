@@ -14,7 +14,7 @@ views = s.views
 #img = Image(640, 480, 3, mve.core.IMAGE_TYPE_UINT8)
 #print(img)
 
-img = numpy.zeros((256,256,3), dtype=numpy.uint8)
+img = numpy.ones((256,256,3), dtype=numpy.uint8) * 128
 
 views[2].set_image("undist-L1", img)
 views[10].remove_image("undist-L1")
