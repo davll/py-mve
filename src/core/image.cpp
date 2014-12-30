@@ -8,9 +8,10 @@
 #  define PyString_FromFormat PyUnicode_FromFormat
 #endif
 
-#pragma GCC diagnostic ignored "-Wc++11-compat-deprecated-writable-strings"
+#pragma clang diagnostic ignored "-Wc++11-compat-deprecated-writable-strings"
+#pragma GCC diagnostic ignored "-Wwrite-strings"
 
-static inline int _ImageTypeToNumpyDataType(mve::ImageType ty)
+static int _ImageTypeToNumpyDataType(mve::ImageType ty)
 {
   switch (ty) {
     case mve::IMAGE_TYPE_UINT8: return NPY_UINT8;
@@ -28,7 +29,7 @@ static inline int _ImageTypeToNumpyDataType(mve::ImageType ty)
   return NPY_NOTYPE;
 }
 
-static inline mve::ImageType _NumpyDataTypeToImageType(int dtype)
+static mve::ImageType _NumpyDataTypeToImageType(int dtype)
 {
   switch (dtype) {
     case NPY_UINT8: return mve::IMAGE_TYPE_UINT8;
@@ -43,42 +44,6 @@ static inline mve::ImageType _NumpyDataTypeToImageType(int dtype)
     case NPY_FLOAT64: return mve::IMAGE_TYPE_DOUBLE;
   };
   return mve::IMAGE_TYPE_UNKNOWN;
-}
-
-static inline size_t _ImageTypeElementSize(mve::ImageType ty)
-{
-  switch (ty) {
-    case mve::IMAGE_TYPE_UINT8: return sizeof(uint8_t);
-    case mve::IMAGE_TYPE_UINT16: return sizeof(uint16_t);
-    case mve::IMAGE_TYPE_UINT32: return sizeof(uint32_t);
-    case mve::IMAGE_TYPE_UINT64: return sizeof(uint64_t);
-    case mve::IMAGE_TYPE_SINT8: return sizeof(int8_t);
-    case mve::IMAGE_TYPE_SINT16: return sizeof(int16_t);
-    case mve::IMAGE_TYPE_SINT32: return sizeof(int32_t);
-    case mve::IMAGE_TYPE_SINT64: return sizeof(int64_t);
-    case mve::IMAGE_TYPE_FLOAT: return sizeof(float);
-    case mve::IMAGE_TYPE_DOUBLE: return sizeof(double);
-    case mve::IMAGE_TYPE_UNKNOWN: return 0;
-  };
-  return (size_t)-1;
-}
-
-static inline char const * _ImageTypeToString(mve::ImageType ty)
-{
-  switch (ty) {
-    case mve::IMAGE_TYPE_UINT8: return "uint8";
-    case mve::IMAGE_TYPE_UINT16: return "uint16";
-    case mve::IMAGE_TYPE_UINT32: return "uint32";
-    case mve::IMAGE_TYPE_UINT64: return "uint64";
-    case mve::IMAGE_TYPE_SINT8: return "sint8";
-    case mve::IMAGE_TYPE_SINT16: return "sint16";
-    case mve::IMAGE_TYPE_SINT32: return "sint32";
-    case mve::IMAGE_TYPE_SINT64: return "sint64";
-    case mve::IMAGE_TYPE_FLOAT: return "float";
-    case mve::IMAGE_TYPE_DOUBLE: return "double";
-    case mve::IMAGE_TYPE_UNKNOWN: return "unknown";
-  };
-  return "unknown";
 }
 
 /***************************************************************************

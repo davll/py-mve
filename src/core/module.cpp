@@ -9,7 +9,8 @@
 #define IMPORT_ARRAY
 #include "numpy_array.h"
 
-#pragma GCC diagnostic ignored "-Wc++11-compat-deprecated-writable-strings"
+#pragma clang diagnostic ignored "-Wc++11-compat-deprecated-writable-strings"
+#pragma GCC diagnostic ignored "-Wwrite-strings"
 
 static PyMethodDef module_methods[] = {
   {NULL, NULL, 0, NULL}

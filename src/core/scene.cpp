@@ -10,7 +10,8 @@
 #  define PyString_FromFormat PyUnicode_FromFormat
 #endif
 
-#pragma GCC diagnostic ignored "-Wc++11-compat-deprecated-writable-strings"
+#pragma clang diagnostic ignored "-Wc++11-compat-deprecated-writable-strings"
+#pragma GCC diagnostic ignored "-Wwrite-strings"
 
 /***************************************************************************
  * Scene Object
